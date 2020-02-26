@@ -18,6 +18,9 @@ returns exponentially distributed random numbers with
 the parameter ‘lambd’
 
 ### Queueing systems
+
+![Alt text](images/The_simple_queueing_sys.png?raw=true "Queueing system")
+
 An overall
 queueing system could be characterized by three main
 components: the arrival process, the service mechanism and the queue discipline. Arrivals may come from
