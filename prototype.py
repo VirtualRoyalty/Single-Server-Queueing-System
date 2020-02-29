@@ -3,14 +3,17 @@ import random
 from random import expovariate
 import pylab
 import matplotlib.pyplot as plt
-
+from queue import Queue
 
 class Server(object):
     def __init__(self, server_rate, capacity):
         self.capacity = capacity
         # self.prev_clients_info
-        self.server_rate = server_rate
         self.serve_prev_client_time = 0
+        self.server_rate = server_rate
+        self.queue = []
+        self._diff_sum = 0
+        self.client_num = 0
 
     def serve(self, client):
         # waiting time for i client is the time difference
@@ -29,6 +32,24 @@ class Server(object):
         self.serve_prev_client_time = client.serve_time
         return
 
+    def add_client(self, client):
+        self._diff_sum += client.entry_diff
+        if self.client_num < self.capacity:
+            self.queue.append(client)
+            self.client_num+=1
+            self.serve(self.queue[0])
+        self.remove_client(self.queue[0])
+        return
+
+    def remove_client(self, client):
+        if self._diff_sum > client.serve_time:
+            self.queue.pop(0)
+            self.client_num -= 1
+            self._diff_sum = 0
+
+
+    # def get_diff_sum(self):
+    #     diff_sum = sum([client for client.entry_diff in self.queue])
 
 class Client(object):
     def __init__(self, ratio):
@@ -42,23 +63,23 @@ class Client(object):
 
 
 client_per_hour = 10
-serve_possibility = 5
+serve_possibility = 10
 
 # client_per_hour /= 100
 # serve_possibility /= 100
 
 # c = Client(client_per_hour/100)
-s = Server(serve_possibility, 1)
+s = Server(serve_possibility, 100)
 
 results = []
 
-for i in range(1000):
+for i in range(10000):
     c = Client(client_per_hour)
-    s.serve(c)
-    results.append(c.sojourn)
+    s.add_client(c)
+    results.append(s.client_num)
 
 
 plt.plot(range(0, len(results)), results)
 plt.show()
-pylab.hist(results, bins=25)
-pylab.show()
+# pylab.hist(results, bins=25)
+# pylab.show()
