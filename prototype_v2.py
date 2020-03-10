@@ -43,9 +43,22 @@ class Server(object):
             self.client_num += 1
 
     def remove_client(self):
-        if self.queue[0].served:
-            self.queue.pop(0)
-            self.client_num-=1
+
+        while True:
+            if self.queue[0].served:
+                self.queue.pop(0)
+                self.client_num -= 1
+                self.exp_dict[self._running_serve] = self.client_num
+
+            if self._running_diff >= self._running_serve:
+                if self.client_num == 1:
+                    self._running_serve = self._running_diff
+
+                self._running_serve += self.queue[0].serve_time
+                self.queue[0].served = True
+            else:
+                break
+
 
     def processing(self, client):
 
@@ -56,14 +69,6 @@ class Server(object):
         if self._running_diff >= self._running_serve:
             self.remove_client()
 
-            self.exp_dict[self._running_serve] = (self.client_num)
-
-            if self.client_num==1:
-                self._running_serve=self._running_diff
-
-        # if self._running_diff >= self._running_serve:
-            self._running_serve += self.queue[0].serve_time
-            self.queue[0].served = True
 
 
 def vis_num_of_clients_in_time(iterations, lambd, mu):
@@ -90,7 +95,7 @@ def test():
 
     c1 = Client(1,1)
     c1.entry_diff = 0
-    c1.serve_time = 1
+    c1.serve_time = 5
     c2 = Client(1,1)
     c2.entry_diff = 1
     c2.serve_time = 1
@@ -99,7 +104,10 @@ def test():
     c3.serve_time = 1
     c4 = Client(1,1)
     c4.entry_diff = 1
-    c4.serve_time = 1
+    c4.serve_time = 2
+    c4 = Client(1,1)
+    c4.entry_diff = 8
+    c4.serve_time = 2
 
     clients = [a, b, c]
     for cl in clients:
