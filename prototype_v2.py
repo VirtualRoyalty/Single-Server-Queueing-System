@@ -35,7 +35,8 @@ class Server(object):
 
     def add_client(self, client):
         self._running_diff += client.entry_diff
-
+        # if self._running_diff > self._running_serve and self.client_num>1:
+        #     self._running_serve = self._running_diff
         if self.client_num < self.capacity:
             self.queue.append(client)
             self.client_num += 1
@@ -49,12 +50,16 @@ class Server(object):
 
         self.add_client(client)
 
+        if self._running_diff >= self._running_serve and self.client_num!=0:
+            self.remove_client()
+
+        # if self.client_num==1:
+        #     self._running_serve=self._running_diff
+
         if self._running_diff >= self._running_serve:
             self._running_serve += self.queue[0].serve_time
             self.queue[0].served = True
 
-        if self._running_diff >= self._running_serve and self.client_num!=0:
-            self.remove_client()
 
 
 def vis_num_of_clients_in_time(iterations, lambd, mu):
@@ -76,8 +81,8 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
 
 
 if __name__ == '__main__':
-    lambd = 100
-    mu = 200
+    lambd = 10 / 100
+    mu = 50 / 100
     capacity = 1000
     iterations = 10000
 
