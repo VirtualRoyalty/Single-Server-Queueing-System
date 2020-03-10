@@ -108,12 +108,12 @@ def test():
     c4 = Client(1,1)
     c4.entry_diff = 1
     c4.serve_time = 2
-    c4 = Client(1,1)
-    c4.entry_diff = 1
-    c4.serve_time = 2
     c5 = Client(1,1)
-    c5.entry_diff = 8
+    c5.entry_diff = 1
     c5.serve_time = 2
+    c6 = Client(1,1)
+    c6.entry_diff = 8
+    c6.serve_time = 2
 
     clients = [c1, c2, c3, c4, c5]
 
