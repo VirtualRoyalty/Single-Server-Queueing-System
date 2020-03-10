@@ -4,7 +4,7 @@ from random import expovariate
 import matplotlib.pyplot as plt
 import collections
 
-# random.seed(2)
+random.seed(32)
 
 
 class Client(object):
@@ -41,34 +41,34 @@ class Server(object):
         if self.client_num < self.capacity:
             self.queue.append(client)
             self.client_num += 1
+        self.exp_dict[self._running_diff] = self.client_num
 
     def remove_client(self):
 
         while True:
-            if self.queue[0].served:
+            if self._running_diff > self._running_serve:
                 self.queue.pop(0)
                 self.client_num -= 1
                 self.exp_dict[self._running_serve] = self.client_num
 
-            if self._running_diff >= self._running_serve:
                 if self.client_num == 1:
                     self._running_serve = self._running_diff
 
-                self._running_serve += self.queue[0].serve_time
-                self.queue[0].served = True
+                self._running_serve+=self.queue[0].serve_time
+
             else:
                 break
 
+            # else:
+            #     break
 
     def processing(self, client):
 
         self.add_client(client)
 
-        self.exp_dict[self._running_diff] = self.client_num
 
-        if self._running_diff >= self._running_serve:
+        if self._running_diff > self._running_serve:
             self.remove_client()
-
 
 
 def vis_num_of_clients_in_time(iterations, lambd, mu):
@@ -76,7 +76,9 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
 
     first_client = Client(lambd, mu)
     first_client.entry_diff = 0
+    server._running_diff = first_client.serve_time
     server.processing(first_client)
+
 
     result = np.zeros(iterations)
     result[0] = server.client_num
@@ -87,6 +89,7 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
     od = collections.OrderedDict(sorted(server.exp_dict.items()))
     plt.plot(list(od.keys()), list(od.values()))
     plt.scatter(list(od.keys()), list(od.values()))
+    plt.grid()
     plt.show()
 
 
@@ -106,19 +109,31 @@ def test():
     c4.entry_diff = 1
     c4.serve_time = 2
     c4 = Client(1,1)
-    c4.entry_diff = 8
+    c4.entry_diff = 1
     c4.serve_time = 2
+    c5 = Client(1,1)
+    c5.entry_diff = 8
+    c5.serve_time = 2
 
-    clients = [a, b, c]
+    clients = [c1, c2, c3, c4, c5]
+
+    server._running_serve = c1.serve_time
     for cl in clients:
         server.processing(cl)
 
+    od = collections.OrderedDict(sorted(server.exp_dict.items()))
+    plt.plot(list(od.keys()), list(od.values()))
+    plt.scatter(list(od.keys()), list(od.values()))
+    plt.grid()
+    plt.show()
+
 if __name__ == '__main__':
-    lambd = 100 / 100
+    lambd = 10 / 100
     mu = 100 / 100
     capacity = 1000
-    iterations = 1000
+    iterations = 10
 
-    vis_num_of_clients_in_time(iterations,lambd, mu)
+    # vis_num_of_clients_in_time(iterations,lambd, mu)
+    test()
 
 
