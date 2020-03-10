@@ -4,7 +4,7 @@ from random import expovariate
 import matplotlib.pyplot as plt
 import collections
 
-random.seed(32)
+# random.seed(32)
 
 
 class Client(object):
@@ -41,7 +41,6 @@ class Server(object):
         if self.client_num < self.capacity:
             self.queue.append(client)
             self.client_num += 1
-        self.exp_dict[self._running_diff] = self.client_num
 
     def remove_client(self):
 
@@ -59,16 +58,13 @@ class Server(object):
             else:
                 break
 
-            # else:
-            #     break
-
     def processing(self, client):
-
         self.add_client(client)
-
 
         if self._running_diff > self._running_serve:
             self.remove_client()
+
+        self.exp_dict[self._running_diff] = self.client_num
 
 
 def vis_num_of_clients_in_time(iterations, lambd, mu):
@@ -77,6 +73,7 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
     first_client = Client(lambd, mu)
     first_client.entry_diff = 0
     server._running_diff = first_client.serve_time
+    server._running_serve = first_client.serve_time
     server.processing(first_client)
 
 
@@ -87,6 +84,7 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
         server.processing(Client(lambd, mu))
 
     od = collections.OrderedDict(sorted(server.exp_dict.items()))
+    plt.figure(figsize=(20, 20))
     plt.plot(list(od.keys()), list(od.values()))
     plt.scatter(list(od.keys()), list(od.values()))
     plt.grid()
@@ -106,16 +104,16 @@ def test():
     c3.entry_diff = 1
     c3.serve_time = 1
     c4 = Client(1,1)
-    c4.entry_diff = 1
+    c4.entry_diff = 2
     c4.serve_time = 2
     c5 = Client(1,1)
-    c5.entry_diff = 1
+    c5.entry_diff = 2
     c5.serve_time = 2
     c6 = Client(1,1)
     c6.entry_diff = 8
     c6.serve_time = 2
 
-    clients = [c1, c2, c3, c4, c5]
+    clients = [c1, c2, c3, c4, c5, c6]
 
     server._running_serve = c1.serve_time
     for cl in clients:
@@ -128,12 +126,10 @@ def test():
     plt.show()
 
 if __name__ == '__main__':
-    lambd = 10 / 100
-    mu = 100 / 100
-    capacity = 1000
-    iterations = 10
+    lambd = 50
+    mu = 100
+    capacity = 4
+    iterations = 100
 
-    # vis_num_of_clients_in_time(iterations,lambd, mu)
+    vis_num_of_clients_in_time(iterations,lambd, mu)
     test()
-
-
