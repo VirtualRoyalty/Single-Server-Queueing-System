@@ -2,8 +2,9 @@ import numpy as np
 import random
 from random import expovariate
 import matplotlib.pyplot as plt
+import collections
 
-random.seed(2)
+# random.seed(2)
 
 
 class Client(object):
@@ -27,11 +28,11 @@ class Server(object):
         self.queue = []
         self._running_serve = 0
         self._running_diff = 0
-        self.info = {
-            'client_num': self.client_num,
-            'waiting_time_sum': 0,
-            # add here what u want
-        }
+        # self.info = {
+        #     'client_num': [],
+        #     'time': [],
+        # }
+        self.exp_dict = {}
 
     def add_client(self, client):
         self._running_diff += client.entry_diff
@@ -50,16 +51,19 @@ class Server(object):
 
         self.add_client(client)
 
-        if self._running_diff >= self._running_serve and self.client_num!=0:
-            self.remove_client()
-
-        # if self.client_num==1:
-        #     self._running_serve=self._running_diff
+        self.exp_dict[self._running_diff] = self.client_num
 
         if self._running_diff >= self._running_serve:
+            self.remove_client()
+
+            self.exp_dict[self._running_serve] = (self.client_num)
+
+            if self.client_num==1:
+                self._running_serve=self._running_diff
+
+        # if self._running_diff >= self._running_serve:
             self._running_serve += self.queue[0].serve_time
             self.queue[0].served = True
-
 
 
 def vis_num_of_clients_in_time(iterations, lambd, mu):
@@ -74,18 +78,39 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
 
     for i in range(1, iterations):
         server.processing(Client(lambd, mu))
-        result[i] = server.client_num
 
-    plt.plot(range(iterations), result)
+    od = collections.OrderedDict(sorted(server.exp_dict.items()))
+    plt.plot(list(od.keys()), list(od.values()))
+    plt.scatter(list(od.keys()), list(od.values()))
     plt.show()
 
 
-if __name__ == '__main__':
-    lambd = 10 / 100
-    mu = 50 / 100
-    capacity = 1000
-    iterations = 10000
+def test():
+    server = Server(capacity=capacity)
 
-    vis_num_of_clients_in_time(iterations, lambd, mu)
+    c1 = Client(1,1)
+    c1.entry_diff = 0
+    c1.serve_time = 1
+    c2 = Client(1,1)
+    c2.entry_diff = 1
+    c2.serve_time = 1
+    c3 = Client(1,1)
+    c3.entry_diff = 1
+    c3.serve_time = 1
+    c4 = Client(1,1)
+    c4.entry_diff = 1
+    c4.serve_time = 1
+
+    clients = [a, b, c]
+    for cl in clients:
+        server.processing(cl)
+
+if __name__ == '__main__':
+    lambd = 100 / 100
+    mu = 100 / 100
+    capacity = 1000
+    iterations = 1000
+
+    vis_num_of_clients_in_time(iterations,lambd, mu)
 
 
