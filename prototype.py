@@ -73,7 +73,7 @@ s = Server(serve_possibility, 100)
 
 results = []
 
-for i in range(10000):
+for i in range(10):
     c = Client(client_per_hour)
     s.add_client(c)
     results.append(s.client_num)
