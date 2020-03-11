@@ -4,7 +4,7 @@ from random import expovariate
 import matplotlib.pyplot as plt
 import collections
 
-# random.seed(1116)
+random.seed(57)
 
 
 class Client(object):
@@ -28,7 +28,9 @@ class Server(object):
         self.info = {
             'serve_time': [],
             'diff_time': [],
-            'non-served': 0
+            'sojourn_time': [],
+            'non-served': 0,
+
         }
 
     def update_info(self, client):
@@ -36,6 +38,7 @@ class Server(object):
         self.info['diff_time'].append(client.entry_diff)
 
     def processing(self, client):
+        flag_lost = 0
 
         self._running_diff += client.entry_diff
 
@@ -43,18 +46,19 @@ class Server(object):
             self._running_serve = self._running_diff + client.serve_time
 
         if self.client_num < self.capacity:
-
             self.update_info(client)
-
             if self.client_num == 0:
                 self.waiting_time.append(0)
             else:
                 self.waiting_time.append(max(0.0, self.ST-client.entry_diff))
             self.ST = client.serve_time + self.waiting_time[-1]
-            self.queue.append(client)
-            self.client_num += 1
-        else:
-            self.info['non-served'] +=1
+
+            self.info['sojourn_time'].append(self.ST)
+
+        self.queue.append(client)
+        self.client_num+=1
+
+            # self.update_info(client)
 
         while True:
             if self._running_diff >= self._running_serve:
@@ -68,7 +72,15 @@ class Server(object):
 
                 self._running_serve += self.queue[0].serve_time
             else:
+                if self.client_num > self.capacity:
+                    self.queue.pop()
+                    self.client_num -= 1
+                    self.info['non-served'] +=1
+                    flag_lost = 1
                 break
+
+        if flag_lost==0:
+            self.exp_dict[self._running_diff] = self.client_num
 
         self.exp_dict[self._running_diff] = self.client_num
 
@@ -152,12 +164,26 @@ def vis_waiting_time_of_each_client(iterations, lambd, mu):
           'server capacity={} is {}'.format(lambd, mu, capacity, np.array(server.waiting_time).mean()))
 
 
+def mean_sojourn_time():
+    server = Server(capacity=capacity)
+
+    result = np.zeros(iterations)
+    result[0] = server.client_num
+
+    for i in range(1, iterations):
+        server.processing(Client(lambd, mu))
+
+    print('Average sojourn time of all clients with lambda={}, mu={} & '
+          'server capacity={} is {}'.format(lambd, mu, capacity, np.array(server.info['sojourn_time']).mean()))
+
+
 if __name__ == '__main__':
-    lambd = 10
+    lambd = 80
     mu = 100
     capacity = 5
     iterations = 10000
 
-    vis_num_of_clients_in_time(iterations,lambd, mu)
-    vis_waiting_time_of_each_client(iterations, lambd, mu)
+    # vis_num_of_clients_in_time(iterations,lambd, mu)
+    # vis_waiting_time_of_each_client(iterations, lambd, mu)
     # test()
+    mean_sojourn_time()
