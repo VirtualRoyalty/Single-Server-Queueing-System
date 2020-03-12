@@ -4,8 +4,7 @@ from random import expovariate
 import matplotlib.pyplot as plt
 import collections
 
-random.seed(57)
-
+#random.seed(57)
 
 class Client(object):
     def __init__(self, lambd, mu):
@@ -57,7 +56,7 @@ class Server(object):
         self.queue.append(client)
         self.client_num += 1
 
-            # self.update_info(client)
+        # self.update_info(client)
 
         while True:
             if self._running_diff >= self._running_serve:
@@ -92,6 +91,13 @@ def states_prob(capacity, dict):
         num = num / len(dict)
 
     return states_count
+
+def mean_state(states_prob):
+    sum_mean = 0
+    for i in len(states_prob):
+        sum_mean += i * states_prob[i]
+
+    return sum_mean
 
 def vis_num_of_clients_in_time(iterations, lambd, mu,
                                 capacity=100):
@@ -167,7 +173,7 @@ def test():
     plt.show()
 
 
-def vis_waiting_time_of_each_client(iterations, lambd, mu):
+def vis_waiting_time_of_each_client(iterations, lambd, mu, capacity):
     server = Server(capacity=capacity)
 
     result = np.zeros(iterations)
@@ -185,7 +191,7 @@ def vis_waiting_time_of_each_client(iterations, lambd, mu):
           'server capacity={} is {}'.format(lambd, mu, capacity, np.array(server.waiting_time).mean()))
 
 
-def mean_sojourn_time():
+def mean_sojourn_time(iterations, lambd, mu, capacity, verbose=False):
     server = Server(capacity=capacity)
 
     result = np.zeros(iterations)
@@ -193,6 +199,36 @@ def mean_sojourn_time():
 
     for i in range(1, iterations):
         server.processing(Client(lambd, mu))
+    ret = np.array(server.info['sojourn_time']).mean()
+    
+    if verbose:
+        print('Average sojourn time of all clients with lambda={}, mu={} & '
+              'server capacity={} is {}'.format(lambd, mu, capacity, ret))    
+    return ret
 
-    print('Average sojourn time of all clients with lambda={}, mu={} & '
-          'server capacity={} is {}'.format(lambd, mu, capacity, np.array(server.info['sojourn_time']).mean()))
+def prob_of_waiting(iterations, lambd, mu, capacity, verbose=False):
+    server = Server(capacity=capacity)
+
+    for i in range(1, iterations):
+        server.processing(Client(lambd, mu))
+
+    non_zero_wait_time = np.array(server.waiting_time).nonzero()[0].size
+    total_wait_times = len(server.waiting_time)
+
+    ret = non_zero_wait_time/total_wait_times
+
+    if verbose:
+        print('Average sojourn time of all clients with lambda={}, mu={} & '
+              'server capacity={} is {}'.format(lambd, mu, capacity, ret))   
+    return ret
+
+if __name__ == '__main__':
+    lambd = 80
+    mu = 100
+    capacity = 5
+    iterations = 10000
+
+    # vis_num_of_clients_in_time(iterations,lambd, mu)
+    # vis_waiting_time_of_each_client(iterations, lambd, mu)
+    # test()
+    mean_sojourn_time(iterations, lambd, mu, capacity)
