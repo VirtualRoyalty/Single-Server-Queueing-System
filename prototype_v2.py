@@ -77,7 +77,6 @@ class Server(object):
                     self.info['non-served'] +=1
                     flag_lost = 1
                 break
-
         if flag_lost == 0:
             self.exp_dict[self._running_diff] = self.client_num
 
@@ -93,7 +92,6 @@ def states_prob(capacity, dict):
         num = num / len(dict)
 
     return states_count
-
 
 def vis_num_of_clients_in_time(iterations, lambd, mu,
                                 capacity=100):
@@ -135,7 +133,7 @@ def vis_mean_of_clients_in_time(iterations, lambd, mu,
 
 
 
-def test(capacity):
+def test():
     server = Server(capacity=capacity)
 
     c1 = Client(1,1)
@@ -198,15 +196,3 @@ def mean_sojourn_time():
 
     print('Average sojourn time of all clients with lambda={}, mu={} & '
           'server capacity={} is {}'.format(lambd, mu, capacity, np.array(server.info['sojourn_time']).mean()))
-
-
-if __name__ == '__main__':
-    lambd = 80
-    mu = 100
-    capacity = 5
-    iterations = 10000
-
-    # vis_num_of_clients_in_time(iterations,lambd, mu)
-    # vis_waiting_time_of_each_client(iterations, lambd, mu)
-    # test()
-    mean_sojourn_time()
