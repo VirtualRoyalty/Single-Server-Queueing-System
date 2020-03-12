@@ -70,31 +70,6 @@ class Client(object):
         self.sojourn = self.serve_time + self.waiting_time
 
 
-lambd = 10  # entry flow
-mu = 9  # exit flow
-
-# client_per_hour /= 100
-# serve_possibility /= 100
-
-# c = Client(client_per_hour/100)
-s = Server(mu, capacity=5)
-
-results = []
-
-def mean_sojourn_time():
-    for i in range(10000):
-        c = Client(lambd)
-        sojourn_time_of_last_client = s.add_client(c)
-        if sojourn_time_of_last_client is not None:
-            results.append(sojourn_time_of_last_client)
-
-
-    # plt.plot(range(0, len(results)), results)
-    # plt.show()
-    pylab.hist(results, bins=50)
-    pylab.show()
-
-
 def mean_clients_num():
     for i in range(10000):
         c = Client(lambd)
