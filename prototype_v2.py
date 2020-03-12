@@ -21,7 +21,7 @@ class Server(object):
         self.queue = []
         self._running_serve = 0
         self._running_diff = 0
-        self.exp_dict = {0:0}
+        self.exp_dict = {0: 0}
         self.waiting_time = []
         self.ST = 0
         self.info = {
@@ -29,7 +29,6 @@ class Server(object):
             'diff_time': [],
             'sojourn_time': [],
             'non-served': 0,
-            
         }
 
     def update_info(self, client):
@@ -49,14 +48,13 @@ class Server(object):
             if self.client_num == 0:
                 self.waiting_time.append(0)
             else:
-                
-                self.waiting_time.append(max(0.0, self.ST-client.entry_diff))
+                self.waiting_time.append(max(0.0, self.ST - client.entry_diff))
             self.ST = client.serve_time + self.waiting_time[-1]
 
             self.info['sojourn_time'].append(self.ST)
 
         self.queue.append(client)
-        self.client_num+=1
+        self.client_num += 1
 
         # self.update_info(client)
 
@@ -78,8 +76,7 @@ class Server(object):
                     self.info['non-served'] +=1
                     flag_lost = 1
                 break
-
-        if flag_lost==0:
+        if flag_lost == 0:
             self.exp_dict[self._running_diff] = self.client_num
 
         self.exp_dict[self._running_diff] = self.client_num
@@ -102,7 +99,8 @@ def mean_state(states_prob):
 
     return sum_mean
 
-def vis_num_of_clients_in_time(iterations, lambd, mu, capacity):
+def vis_num_of_clients_in_time(iterations, lambd, mu,
+                                capacity=100):
     server = Server(capacity=capacity)
 
     result = np.zeros(iterations)
@@ -116,6 +114,29 @@ def vis_num_of_clients_in_time(iterations, lambd, mu, capacity):
     plt.scatter(list(od.keys()), list(od.values()))
     plt.grid()
     plt.show()
+
+def vis_mean_of_clients_in_time(iterations, lambd, mu,
+                                capacity=100):
+    server = Server(capacity=capacity)
+
+    result = np.zeros(iterations)
+    result[0] = server.client_num
+
+    for i in range(1, iterations):
+        server.processing(Client(lambd, mu))
+
+    od = collections.OrderedDict(sorted(server.exp_dict.items()))
+    ox = np.array(list(od.keys()))
+    oy = list(od.values())
+    oy = [sum(oy[:i+1]) for i, x in enumerate(oy)]
+    oy = np.array(oy) / ox
+    oy[0] = 0
+    plt.plot(ox, oy)
+    plt.scatter(ox, oy)
+    plt.grid()
+    plt.show()
+    return ox, oy
+
 
 
 def test():
@@ -178,7 +199,6 @@ def mean_sojourn_time(iterations, lambd, mu, capacity, verbose=False):
 
     for i in range(1, iterations):
         server.processing(Client(lambd, mu))
-
     ret = np.array(server.info['sojourn_time']).mean()
     
     if verbose:
