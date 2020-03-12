@@ -88,7 +88,6 @@ def states_prob(capacity, dict):
     return states_count
 
 
-
 def mean_state(states_prob):
     sum_mean = 0
     for i in range(states_prob.shape[0]):
@@ -154,6 +153,7 @@ def test():
     plt.scatter(list(od.keys()), list(od.values()))
     plt.grid()
     plt.show()
+
 
 if __name__ == '__main__':
     lambd = 10
