@@ -82,8 +82,8 @@ def states_prob(capacity, dict):
     for state in dict.values():
         states_count[state] += 1
 
-    for num in states_count:
-        num = num / len(dict)
+    for i in range (len(states_count)):
+        states_count[i] = states_count[i] / len(dict)
 
     return states_count
 
@@ -91,7 +91,7 @@ def states_prob(capacity, dict):
 
 def mean_state(states_prob):
     sum_mean = 0
-    for i in len(states_prob):
+    for i in range(states_prob.shape[0]):
         sum_mean += i * states_prob[i]
 
     return sum_mean
@@ -115,6 +115,10 @@ def vis_num_of_clients_in_time(iterations, lambd, mu):
     print('Mean time inside = {}'.format(np.array(server.info['time_inside']).mean()))
     print('Mean waiting time  = {}'.format(np.array(server.waiting_time).mean()))
     print('Mean lost = {}'.format(server.info['non-served']/iterations))
+    probs = states_prob(capacity, server.exp_dict)
+    print(probs)
+    print(mean_state(probs))
+    print('Mean state = {}'.format(mean_state(states_prob(capacity, server.exp_dict))))
 
 
 
