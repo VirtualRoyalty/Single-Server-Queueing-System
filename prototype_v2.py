@@ -48,9 +48,7 @@ class Server(object):
         self.queue.append(client)
         self.client_num += 1
 
-        # self.update_info(client)
-
-         while True:
+        while True:
             if self._running_diff >= self._running_serve:
                 self.queue.pop(0)
                 self.client_num -= 1
@@ -72,8 +70,8 @@ class Server(object):
                     self.info['time_inside'].pop()
 
                 break
-                
-       if flag_lost == 0:
+
+        if flag_lost == 0:
             self.exp_dict[self._running_diff] = self.client_num
 
 
@@ -86,7 +84,7 @@ def states_prob(capacity, dict):
         states_count[i] = states_count[i] / len(dict)
 
     return states_count
-  
+
 def mean_state(states_prob):
     sum_mean = 0
     for i in range(states_prob.shape[0]):
@@ -94,7 +92,24 @@ def mean_state(states_prob):
 
     return sum_mean
 
-def vis_num_of_clients_in_time(iterations, lambd, mu, capacity):
+def get_mean(iterations, lambd, mu, capacity):
+    server = Server(capacity=capacity)
+
+    for i in range(1, iterations+1):
+        server.processing(Client(lambd, mu))
+
+    return mean_state(states_prob(capacity, server.exp_dict))
+
+def get_probs(iterations, lambd, mu, capacity):
+    server = Server(capacity=capacity)
+
+    for i in range(1, iterations+1):
+        server.processing(Client(lambd, mu))
+
+    return states_prob(capacity, server.exp_dict)
+
+def vis_num_of_clients_in_time(iterations, lambd, mu,
+                               capacity, title='Состояния системы'):
     server = Server(capacity=capacity)
 
     result = np.zeros(iterations)
@@ -106,6 +121,8 @@ def vis_num_of_clients_in_time(iterations, lambd, mu, capacity):
     od = collections.OrderedDict(sorted(server.exp_dict.items()))
     plt.plot(list(od.keys()), list(od.values()), '*-')
     plt.grid()
+    plt.title(title + ' при lambda = ' + str(lambd) + ', mu = ' \
+                                   + str(mu) + ', capacity = ' + str(capacity))
     plt.show()
 
     print('Lost = {}'.format(server.info['non-served']))
@@ -113,12 +130,12 @@ def vis_num_of_clients_in_time(iterations, lambd, mu, capacity):
     print('Mean waiting time  = {}'.format(np.array(server.waiting_time).mean()))
     print('Mean lost = {}'.format(server.info['non-served']/iterations))
     probs = states_prob(capacity, server.exp_dict)
-    print(probs)
+    # print(probs)
     print(mean_state(probs))
     print('Mean state = {}'.format(mean_state(states_prob(capacity, server.exp_dict))))
 
 def vis_mean_of_clients_in_time(iterations, lambd, mu,
-                                capacity=100):
+                                capacity=100, title='Среднее количество заявок в системе к моменту t'):
     server = Server(capacity=capacity)
 
     result = np.zeros(iterations)
@@ -132,9 +149,11 @@ def vis_mean_of_clients_in_time(iterations, lambd, mu,
     oy = list(od.values())
     oy = [sum(oy[:i+1]) for i, x in enumerate(oy)]
     oy = np.array(oy) / ox
+    ox[0] = 0
     oy[0] = 0
     plt.plot(ox, oy)
-    plt.scatter(ox, oy)
+    plt.title(title + ' при lambda = ' + str(lambd) + ', mu = ' \
+                                   + str(mu) + ', capacity = ' + str(capacity))
     plt.grid()
     plt.show()
     return ox, oy
@@ -166,11 +185,11 @@ def mean_sojourn_time(iterations, lambd, mu, capacity, verbose=False):
 
     for i in range(1, iterations):
         server.processing(Client(lambd, mu))
-    ret = np.array(server.info['sojourn_time']).mean()
-    
+    ret = np.array(server.info['time_inside']).mean()
+
     if verbose:
         print('Average sojourn time of all clients with lambda={}, mu={} & '
-              'server capacity={} is {}'.format(lambd, mu, capacity, ret))    
+              'server capacity={} is {}'.format(lambd, mu, capacity, ret))
     return ret
 
 def prob_of_waiting(iterations, lambd, mu, capacity, verbose=False):
@@ -186,8 +205,37 @@ def prob_of_waiting(iterations, lambd, mu, capacity, verbose=False):
 
     if verbose:
         print('Average sojourn time of all clients with lambda={}, mu={} & '
-              'server capacity={} is {}'.format(lambd, mu, capacity, ret))   
+              'server capacity={} is {}'.format(lambd, mu, capacity, ret))
     return ret
+
+def prob_of_non_serving(iterations, lambd, mu, capacity, verbose=False):
+
+    server = Server(capacity=capacity)
+    for i in range(1, iterations):
+        server.processing(Client(lambd, mu))
+
+    non_served = server.info['non-served'] / iterations
+    return non_served
+
+def draw(message, func_from_class, loops=10, iterations=1000, \
+         mu=[10, 100, 3, 300], N=[20, 5, 1000, 10], ytitle=''):
+    plt.figure(figsize=(15, 10))
+    plt.suptitle(message)
+    for i in range(len(mu)):
+        lambd = range(mu[i] - (mu[i] // 2 + 1), mu[i] + mu[i] // 2 + 2)
+        expect = []
+        for l in lambd:
+            expect_mean = []
+            for loop in range(loops):
+                expect_mean.append(func_from_class(iterations=iterations,lambd=l, mu=mu[i],capacity=N[i]))
+            expect.append(np.mean(expect_mean))
+        plt.subplot(221 + i)
+        plt.plot(lambd, expect, 'o-')
+        plt.title('mu = {}, Capacity = {}'.format(mu[i], N[i]))
+        plt.xlabel('lambda')
+        plt.ylabel(ytitle)
+        plt.grid()
+    plt.show()
 
 if __name__ == '__main__':
     lambd = 80
